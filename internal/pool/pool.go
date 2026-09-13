@@ -49,6 +49,19 @@ type WorktreeStatus struct {
 	LeaseHolder string
 	// LeasedAt records when the current lease was acquired.
 	LeasedAt time.Time
+	// Branch is the branch this slot currently has checked out. It is empty
+	// for a detached HEAD (reported separately as Detached), for a jj slot,
+	// for a markerless slot, and for a slot whose branch could not be read
+	// (reported as BranchErr).
+	Branch string
+	// Detached reports that this git slot's HEAD is detached, which is what
+	// `treehouse get` leaves by default. It is false for slots that are not
+	// git or hold no marker.
+	Detached bool
+	// BranchErr reports that reading this slot's branch failed. It is set
+	// instead of leaving Branch empty, so a read failure is never mistaken for
+	// a detached HEAD.
+	BranchErr string
 }
 
 // LeaseInfo is the stable machine-readable identity of one lease acquisition.
@@ -831,6 +844,18 @@ func List(poolDir string) ([]WorktreeStatus, error) {
 			// "you're here" is now read from the caller's cwd alone. It used
 			// to require a process in the slot, which was only ever the
 			// caller's own shell - the very entry this list stopped reporting.
+			//
+			// Which checkout is in this slot. A markerless (damaged) slot is
+			// never read, so the branch of a repository enclosing the pool can
+			// never be inherited. Detached, jj, and markerless slots report an
+			// empty branch; a failed read is reported as BranchErr instead of
+			// collapsing into that empty value.
+			branch, detached, branchErr := vcs.CheckedOutBranch(wt.Path)
+			ws.Branch = branch
+			ws.Detached = detached
+			if branchErr != nil {
+				ws.BranchErr = branchErr.Error()
+			}
 			if wt.Leased {
 				ws.Status = StatusLeased
 				ws.LeaseID = wt.LeaseID
@@ -848,6 +873,17 @@ func List(poolDir string) ([]WorktreeStatus, error) {
 				ws.Status = StatusDamaged
 			} else if dirty, _ := vcs.IsDirty(wt.Path); dirty {
 				ws.Status = StatusDirty
+			}
+
+			// A slot the recovery scan could not inspect (its marker exists but
+			// could not be read) is reported damaged rather than leased, so the
+			// read failure is never mistaken for an available or ordinarily leased
+			// home. It remains leased underneath (LeaseHolder is already set
+			// above), so Acquire and prune keep skipping it exactly like every
+			// other recovered entry.
+			if wt.RecoveryError != "" {
+				ws.Status = StatusDamaged
+				ws.BranchErr = wt.RecoveryError
 			}
 
 			result = append(result, ws)
