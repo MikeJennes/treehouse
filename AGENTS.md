@@ -106,7 +106,7 @@ post_create = ["./scripts/setup-venv.sh"]
 pre_destroy = ["./scripts/teardown.sh"]
 ```
 
-Hooks are ignored in repo-level config for safety.
+Lifecycle hooks are user-level only; see [README: Hooks](README.md#hooks).
 
 ## Maintaining this file
 
