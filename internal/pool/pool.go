@@ -90,6 +90,12 @@ type AcquireOptions struct {
 	// branch inferred from the repository. A non-empty value that cannot be
 	// resolved fails the acquisition rather than falling back.
 	BaseBranch string
+	// UniqueLeaf gives a newly created worktree a directory name unique within
+	// the pool ("<repo>-<slot>") instead of the repository name every slot
+	// shares. It only affects creation: a recycled slot keeps the path already
+	// recorded in pool state, so enabling it never moves or renames a worktree
+	// that already exists.
+	UniqueLeaf bool
 	// IncludeManifest replaces the committed manifest; nil keeps the default,
 	// while a non-nil empty slice explicitly disables seeding.
 	IncludeManifest []byte
@@ -102,6 +108,9 @@ type acquireOptions struct {
 	// baseBranch is the explicitly requested base branch, or empty to infer it.
 	baseBranch      string
 	includeManifest []byte
+	// uniqueLeaf makes a newly created worktree's own directory name unique
+	// within the pool instead of the repository name every slot shares.
+	uniqueLeaf bool
 	// lease records a durable, process-independent reservation instead of the
 	// default short-lived owner reservation.
 	lease bool
@@ -126,6 +135,7 @@ func AcquireWithOptions(repoRoot, poolDir string, poolSize int, postCreate []str
 		skipFetch:       options.SkipFetch,
 		baseBranch:      options.BaseBranch,
 		includeManifest: options.IncludeManifest,
+		uniqueLeaf:      options.UniqueLeaf,
 		hookStdout:      os.Stdout,
 		hookStderr:      os.Stderr,
 	})
@@ -154,6 +164,7 @@ func AcquireLeaseInfoWithOptions(repoRoot, poolDir string, poolSize int, postCre
 		skipFetch:       options.SkipFetch,
 		baseBranch:      options.BaseBranch,
 		includeManifest: options.IncludeManifest,
+		uniqueLeaf:      options.UniqueLeaf,
 		lease:           true,
 		leaseHolder:     holder,
 		hookStdout:      os.Stderr,
@@ -430,7 +441,17 @@ func acquire(repoRoot, poolDir string, poolSize int, postCreate []string, opts a
 
 		name := nextName(state)
 		repoName := filepath.Base(repoRoot)
-		wtPath := filepath.Join(poolDir, name, repoName)
+		leaf := repoName
+		if opts.uniqueLeaf {
+			// The slot name is already unique within the pool and stays with
+			// the slot across recycles, so it is the cheapest thing that makes
+			// the leaf unique too and keeps the path stable for the caller.
+			// Only this creation branch is reached: the reuse loop above hands
+			// back the path already in state, so an existing worktree is never
+			// moved by turning the option on.
+			leaf = repoName + "-" + name
+		}
+		wtPath := filepath.Join(poolDir, name, leaf)
 
 		if err := os.MkdirAll(filepath.Dir(wtPath), 0755); err != nil {
 			return err
