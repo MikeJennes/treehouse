@@ -1,5 +1,92 @@
 # Changelog
 
+## [4.0.0](https://github.com/MikeJennes/treehouse/compare/v3.1.8...v4.0.0) (2026-11-07)
+
+
+### ⚠ BREAKING CHANGES
+
+* **cmd:** `treehouse return` now exits 3, not 0, when it leaves a dirty worktree in place, and `treehouse get` does the same when its subshell exits leaving one dirty. Callers that read exit 0 as "the slot was released" were reading the bug this fixes; scripts under `set -e`, or using `treehouse return "$p" && next-step`, will now stop or branch differently at a dirty abort. Pass --force to clean and return, or treat exit 3 as "not returned".
+* **cmd:** the `treehouse destroy --force` flag is removed. Replace it with the specific --include-unlanded / --include-in-use / --include-leased flag(s) for the risk you intend to override, plus --yes, and pass an explicit pool path to --all.
+
+### Features
+
+* add --root flag and TREEHOUSE_ROOT env for the worktree root ([#93](https://github.com/MikeJennes/treehouse/issues/93)) ([1764698](https://github.com/MikeJennes/treehouse/commit/1764698cbdb7e71c35c7dd6b991ded0e90a6c721))
+* add Nix package manager install support ([#113](https://github.com/MikeJennes/treehouse/issues/113)) ([f19a652](https://github.com/MikeJennes/treehouse/commit/f19a652b6d84978dc6a4d6effaf147ae96d8edec))
+* add no-fetch worktree acquisition ([d77e3f8](https://github.com/MikeJennes/treehouse/commit/d77e3f807d69b8aff4edab9fb0727b7f6e52cd5d))
+* add opt-in branch creation to treehouse get ([#150](https://github.com/MikeJennes/treehouse/issues/150)) ([00819d6](https://github.com/MikeJennes/treehouse/commit/00819d6e583cf2c779a36ddc223eed64a431273e))
+* add per-acquisition file seeding manifests ([#131](https://github.com/MikeJennes/treehouse/issues/131)) ([f7f8d6c](https://github.com/MikeJennes/treehouse/commit/f7f8d6c6b78d0c20d858887a369b7f29c7876c90))
+* **cmd:** add global prune mode ([#26](https://github.com/MikeJennes/treehouse/issues/26)) ([103e21a](https://github.com/MikeJennes/treehouse/commit/103e21a0e85e320d4fad22eca45453fb95bf1b31))
+* **cmd:** make destroy safe by default ([#37](https://github.com/MikeJennes/treehouse/issues/37)) ([be45d40](https://github.com/MikeJennes/treehouse/commit/be45d40ad0a42f0d5b3ae939673d82393db7694b))
+* **cmd:** report checked-out branches in status ([#134](https://github.com/MikeJennes/treehouse/issues/134)) ([ad740a1](https://github.com/MikeJennes/treehouse/commit/ad740a1ccbe4fbd3b9573204fe891e6088837b6d))
+* **cmd:** return a worktree by name and add return --all ([#143](https://github.com/MikeJennes/treehouse/issues/143)) ([2b86f48](https://github.com/MikeJennes/treehouse/commit/2b86f48bb8eed14919e0ddef720bab8edcd60c46))
+* **config:** add configurable root for pool directory ([#12](https://github.com/MikeJennes/treehouse/issues/12)) ([7fae82a](https://github.com/MikeJennes/treehouse/commit/7fae82a0b546fdebf19fec02052e3761015c3fe1))
+* **fileclone:** add opt-in APFS sharing for fresh Git worktrees ([#153](https://github.com/MikeJennes/treehouse/issues/153)) ([ae70188](https://github.com/MikeJennes/treehouse/commit/ae70188324a86c930e4a4a3b2860fa73ec548d11))
+* initial project setup ([e253955](https://github.com/MikeJennes/treehouse/commit/e253955cda6e3634a6891dfe889278da2c125114))
+* **nix:** add flake.nix and flake.lock ([#15](https://github.com/MikeJennes/treehouse/issues/15)) ([6b0ea8d](https://github.com/MikeJennes/treehouse/commit/6b0ea8da487adb324464d69da5b84a4e9dd109a4))
+* **pool:** add durable worktree leases ([#35](https://github.com/MikeJennes/treehouse/issues/35)) ([749054c](https://github.com/MikeJennes/treehouse/commit/749054cb3636156811047a230c6d0ee5a43b2179))
+* **pool:** add lease command to durably lease an existing worktree ([#128](https://github.com/MikeJennes/treehouse/issues/128)) ([5932367](https://github.com/MikeJennes/treehouse/commit/59323676a8fdb630f6b8e98f07465203b617a78c))
+* **pool:** add stable lease identities ([#68](https://github.com/MikeJennes/treehouse/issues/68)) ([ba6adcb](https://github.com/MikeJennes/treehouse/commit/ba6adcb2f307a4904b64a14824b3ed1019c9926d))
+* **pool:** add user lifecycle hooks ([#22](https://github.com/MikeJennes/treehouse/issues/22)) ([388252d](https://github.com/MikeJennes/treehouse/commit/388252d9e71805d21ab8b97e1fb5b3d86c4d2e88))
+* **pool:** automatically free safe recovered slots ([#159](https://github.com/MikeJennes/treehouse/issues/159)) ([e0fef0a](https://github.com/MikeJennes/treehouse/commit/e0fef0ade3e9963c540bfbe4515f1f551aaed1e6))
+* **pool:** classify orphaned worktrees during prune ([#28](https://github.com/MikeJennes/treehouse/issues/28)) ([424e055](https://github.com/MikeJennes/treehouse/commit/424e05588de092ab3c4ec21f4b7f8f8e999feb74))
+* **pool:** make where a new pool worktree is placed configurable ([#140](https://github.com/MikeJennes/treehouse/issues/140)) ([5e3d185](https://github.com/MikeJennes/treehouse/commit/5e3d185fd2e9456013e15d3f6efbef345ba29925))
+* **pool:** opt-in unique worktree directory names for get ([#126](https://github.com/MikeJennes/treehouse/issues/126)) ([363e12f](https://github.com/MikeJennes/treehouse/commit/363e12ffc96972720ce8db6006cba380b8011157))
+* **pool:** seed ignored files from .worktreeinclude ([#129](https://github.com/MikeJennes/treehouse/issues/129)) ([fa1f9a6](https://github.com/MikeJennes/treehouse/commit/fa1f9a625b603a68896fb6c7eb948b77425d8730))
+* **pool:** support configurable base branch for get ([#119](https://github.com/MikeJennes/treehouse/issues/119)) ([2ccd9df](https://github.com/MikeJennes/treehouse/commit/2ccd9df2ee9c360d3668a16506c564b909752638))
+* **prune:** add safe stale worktree pruning ([#24](https://github.com/MikeJennes/treehouse/issues/24)) ([829f25a](https://github.com/MikeJennes/treehouse/commit/829f25a36cac61fd7060bfce12056e3359f8ea09))
+* **status:** show current worktree status ([e92c8a7](https://github.com/MikeJennes/treehouse/commit/e92c8a7e7b75084c477b932f9f9685e2ecfbc202))
+* use latest default branch for worktree ([9d68410](https://github.com/MikeJennes/treehouse/commit/9d68410d9e7449bf7ca9a605f6e805fc11de93c8))
+* **vcs:** add opt-in Jujutsu (jj) workspace backend behind a VCS seam ([#100](https://github.com/MikeJennes/treehouse/issues/100)) ([4319915](https://github.com/MikeJennes/treehouse/commit/4319915adf194b48994b223200f80cd9c456cdbe))
+* **vcs:** slot-flavor dispatch, flavor-aware acquire, and markerless fail-closed hardening ([#110](https://github.com/MikeJennes/treehouse/issues/110)) ([c464682](https://github.com/MikeJennes/treehouse/commit/c464682ca39fbadb60b4612fa735f9b528cf42a3))
+
+
+### Bug Fixes
+
+* add /v3 major version suffix to module path ([#167](https://github.com/MikeJennes/treehouse/issues/167)) ([3765505](https://github.com/MikeJennes/treehouse/commit/37655058d3be0a40866cb2ba01486c22cad3d44b))
+* app update permission error ([cbf6fe9](https://github.com/MikeJennes/treehouse/commit/cbf6fe9a96e3a13a1c6e417bdb875537868c9702))
+* CI failures ([f580e02](https://github.com/MikeJennes/treehouse/commit/f580e02fa9ce87ca0346c20645e5131e2d146bfd))
+* **ci:** make update-vendor-hash fork-aware for checkout and push ([#105](https://github.com/MikeJennes/treehouse/issues/105)) ([b87fb0d](https://github.com/MikeJennes/treehouse/commit/b87fb0d559e981ccb78a57b2f9b1e77dc866c4dd))
+* **ci:** suppress pull_request runs on release-please PRs ([#77](https://github.com/MikeJennes/treehouse/issues/77)) ([cee8600](https://github.com/MikeJennes/treehouse/commit/cee86003b04b46436857927137c89331b1ef563a))
+* **cli:** expose version flag and set rootCmd.Version ([238d63f](https://github.com/MikeJennes/treehouse/commit/238d63ff49536d2b7256d3a66a6d71db1f99ba4f))
+* **cmd:** detach worktrees before pool reuse ([#19](https://github.com/MikeJennes/treehouse/issues/19)) ([14d5fd7](https://github.com/MikeJennes/treehouse/commit/14d5fd725203af3465e8045e7e7c25346452c8ed))
+* **cmd:** exit non-zero when a dirty worktree is not returned ([#138](https://github.com/MikeJennes/treehouse/issues/138)) ([1ef79fb](https://github.com/MikeJennes/treehouse/commit/1ef79fbbc23c4d0375d57a94ef0b0309a681ad63))
+* **cmd:** paste-safe dirty non-TTY return --force hints ([#122](https://github.com/MikeJennes/treehouse/issues/122)) ([4738d5a](https://github.com/MikeJennes/treehouse/commit/4738d5abe2325cf56b87a530d29782a4fdab3d8e))
+* **cmd:** resolve main repo root for pool commands run inside a worktree ([#51](https://github.com/MikeJennes/treehouse/issues/51)) ([8c8bf8f](https://github.com/MikeJennes/treehouse/commit/8c8bf8f340bba75cc5c1527e8420c6eea9340ceb))
+* **config:** warn when repository hooks are ignored ([#141](https://github.com/MikeJennes/treehouse/issues/141)) ([178b244](https://github.com/MikeJennes/treehouse/commit/178b244a0742591537dd3f5a1d22df43864f36c1))
+* detect squash-merged worktrees ([#88](https://github.com/MikeJennes/treehouse/issues/88)) ([4785c18](https://github.com/MikeJennes/treehouse/commit/4785c18d419c0b4b78937fee21a3014cf56e96bb))
+* **get:** skip reclaiming a pool slot that holds unlanded work ([#104](https://github.com/MikeJennes/treehouse/issues/104)) ([be71725](https://github.com/MikeJennes/treehouse/commit/be717257be7f075b44bf9383303c30aada44f47d))
+* ignore in-project pool via .git/info/exclude ([e2e3689](https://github.com/MikeJennes/treehouse/commit/e2e3689aec660ea85705dcba121692feb23f8ac5))
+* install under ~/.local/bin when in PATH ([9586e78](https://github.com/MikeJennes/treehouse/commit/9586e78db4c312b507f0e47bfe77ad2a504d5843))
+* **installer:** resolve latest release without GitHub API ([#197](https://github.com/MikeJennes/treehouse/issues/197)) ([c084a5f](https://github.com/MikeJennes/treehouse/commit/c084a5f6434608d02824b55c7d28d620dacdb3ce))
+* **nix:** drop x86_64-darwin and update flake.lock ([#182](https://github.com/MikeJennes/treehouse/issues/182)) ([8a1bdc4](https://github.com/MikeJennes/treehouse/commit/8a1bdc4275a6ccda7aa3256d1e2f0bfc53bc709b))
+* pin nix-build to flake-locked nixpkgs and extract package.nix ([#135](https://github.com/MikeJennes/treehouse/issues/135)) ([5a3cead](https://github.com/MikeJennes/treehouse/commit/5a3cead3f48a3d3f45ea042a5535a1050842b646))
+* **pool:** adopt pre-3.0 state instead of quarantining it as recovered ([#156](https://github.com/MikeJennes/treehouse/issues/156)) ([da962d7](https://github.com/MikeJennes/treehouse/commit/da962d74c970cd5026f07aa552a2797afa90b363))
+* **pool:** guard against invalid worktree registrations ([#200](https://github.com/MikeJennes/treehouse/issues/200)) ([77305c6](https://github.com/MikeJennes/treehouse/commit/77305c6753ac92b049bc1d6902d05742605c8961))
+* **pool:** let prune and destroy reclaim worktrees from other clones in a shared pool ([#146](https://github.com/MikeJennes/treehouse/issues/146)) ([32bd5c3](https://github.com/MikeJennes/treehouse/commit/32bd5c3874149550fe25176851ca6a320aec795e))
+* **pool:** make state persistence atomic and recoverable ([#55](https://github.com/MikeJennes/treehouse/issues/55)) ([eb81461](https://github.com/MikeJennes/treehouse/commit/eb814618cc8b1ae2c22f94b15b4aa4a25f036aab))
+* **pool:** preserve worktree identity across symlinked pool paths ([#208](https://github.com/MikeJennes/treehouse/issues/208)) ([6652741](https://github.com/MikeJennes/treehouse/commit/665274165fa33f21374f9610efb49e2e025fea04))
+* **pool:** prune stale worktree registrations before adding in get ([8f2c575](https://github.com/MikeJennes/treehouse/commit/8f2c575b6dabd3dbb127c6415d800d475973f90b)), closes [#31](https://github.com/MikeJennes/treehouse/issues/31)
+* **pool:** reclaim empty leftover slot directories on get ([#186](https://github.com/MikeJennes/treehouse/issues/186)) ([cd4aa64](https://github.com/MikeJennes/treehouse/commit/cd4aa6408e19e5c08f67ddc2e2e653f4614af012))
+* **pool:** report only the processes return would terminate in status ([#139](https://github.com/MikeJennes/treehouse/issues/139)) ([013b4d9](https://github.com/MikeJennes/treehouse/commit/013b4d9d44f485ed4e94ebb47dc1d0d064425be8))
+* **pool:** reuse a pooled worktree only for the clone that owns it ([#145](https://github.com/MikeJennes/treehouse/issues/145)) ([3a634d8](https://github.com/MikeJennes/treehouse/commit/3a634d88cf1c39d401e048a143706db6327f3aa1))
+* **pool:** stop get from deregistering live slots it cannot see ([#198](https://github.com/MikeJennes/treehouse/issues/198)) ([72fa18d](https://github.com/MikeJennes/treehouse/commit/72fa18d1fd2566369ef8ea5cf4fed0fcf3b57046)), closes [#194](https://github.com/MikeJennes/treehouse/issues/194)
+* **process:** safely clean up lingering worktree processes ([#17](https://github.com/MikeJennes/treehouse/issues/17)) ([a0c0a33](https://github.com/MikeJennes/treehouse/commit/a0c0a33cf55c8ba1fa1b1ccd96814de4ccf6031f))
+* **process:** wait for SIGKILLed processes to be reaped before return runs git ([#102](https://github.com/MikeJennes/treehouse/issues/102)) ([431bc3a](https://github.com/MikeJennes/treehouse/commit/431bc3afce43fb55526bfa7271e520e343195aee))
+* recheck app update when cached version is stale ([db62bf7](https://github.com/MikeJennes/treehouse/commit/db62bf77578c772bef7dc1a7e9ef22fea7a99ed0))
+* **return:** refuse to reset a worktree that still has live writers ([#103](https://github.com/MikeJennes/treehouse/issues/103)) ([78f01e8](https://github.com/MikeJennes/treehouse/commit/78f01e83248576e3ef8baf290f344b5455a47d9d))
+* **shell:** start supported user shells as interactive login sessions ([#120](https://github.com/MikeJennes/treehouse/issues/120)) ([f911063](https://github.com/MikeJennes/treehouse/commit/f911063f0832747cd5e277b52f91da26ee00b380))
+* shorter version display ([416efb5](https://github.com/MikeJennes/treehouse/commit/416efb57bc0d462a265b38de312586d4117a374e))
+* update repository URLs ([f2350c4](https://github.com/MikeJennes/treehouse/commit/f2350c46847f68588d893c89db149d022f1cb765))
+* update vendor hash handling in workflow ([1e3234d](https://github.com/MikeJennes/treehouse/commit/1e3234d0422d3a7552b5d89cfd5ca7154c543ddf))
+* **update:** refuse self-update and silence the notice in the Nix store ([#180](https://github.com/MikeJennes/treehouse/issues/180)) ([9a68c93](https://github.com/MikeJennes/treehouse/commit/9a68c93186fa6c0f1b10349939b8da6105a41369))
+* **updater:** replace a running Windows exe without a fixed .old backup ([#121](https://github.com/MikeJennes/treehouse/issues/121)) ([e75f606](https://github.com/MikeJennes/treehouse/commit/e75f6060999a5a5942dd2934a525003ecf0d6f95))
+* use remote URL for pool hash for local repos ([ee5ce7c](https://github.com/MikeJennes/treehouse/commit/ee5ce7c8b50fea61655029352bdc487689933b9e))
+* **vcs:** check recovered HEAD containment with a single rev-list walk ([#164](https://github.com/MikeJennes/treehouse/issues/164)) ([1107db4](https://github.com/MikeJennes/treehouse/commit/1107db40b1b12ec703a60657822194e5de3c2fb3))
+* **vcs:** move HEAD through a git transaction on reftable repositories ([#175](https://github.com/MikeJennes/treehouse/issues/175)) ([f4ea002](https://github.com/MikeJennes/treehouse/commit/f4ea0028290d17e44f6d351e55954d7afe368f90)), closes [#174](https://github.com/MikeJennes/treehouse/issues/174)
+* **vcs:** pin submodule.recurse=false in git runners ([#177](https://github.com/MikeJennes/treehouse/issues/177)) ([300ea4c](https://github.com/MikeJennes/treehouse/commit/300ea4c862be51ca66b649e29fb7b9c7931acaf7))
+* **vcs:** recover stale HEAD.lock left by interrupted worktree reset ([#178](https://github.com/MikeJennes/treehouse/issues/178)) ([eedfddf](https://github.com/MikeJennes/treehouse/commit/eedfddf35896dbdd7c262bf599099ee6fada4e6b))
+* windows test failure ([7ab0903](https://github.com/MikeJennes/treehouse/commit/7ab0903adae85567f154f7334d4ecbb7df8a5f73))
+
 ## [3.1.8](https://github.com/kunchenguid/treehouse/compare/v3.1.7...v3.1.8) (2026-10-30)
 
 
